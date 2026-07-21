@@ -1,0 +1,178 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- ==========================================
+-- SISTEMA DE PROTEÇÃO (Para Executores Mobile/PC)
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PrivateHubLoadingScreen"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local success = pcall(function()
+    ScreenGui.Parent = CoreGui
+end)
+if not success then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Limpa telas antigas se você executar o script duas vezes
+for _, gui in pairs(ScreenGui.Parent:GetChildren()) do
+    if gui.Name == "PrivateHubLoadingScreen" and gui ~= ScreenGui then
+        gui:Destroy()
+    end
+end
+
+-- ==========================================
+-- CRIAÇÃO DA INTERFACE
+-- ==========================================
+-- Fundo Principal
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(1, 0, 1, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+-- Gradiente (Preto na esquerda, Vermelho Escuro na direita)
+local BackgroundGradient = Instance.new("UIGradient")
+BackgroundGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(15, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(90, 0, 0))
+})
+BackgroundGradient.Parent = MainFrame
+
+-- Sombra do Título
+local TitleShadow = Instance.new("TextLabel")
+TitleShadow.Size = UDim2.new(0, 500, 0, 80)
+TitleShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+TitleShadow.Position = UDim2.new(0.5, 4, 0.4, 4)
+TitleShadow.BackgroundTransparency = 1
+TitleShadow.Text = "PRIVATE HUB X"
+TitleShadow.Font = Enum.Font.Arcade
+TitleShadow.TextSize = 65
+TitleShadow.TextColor3 = Color3.fromRGB(0, 0, 0)
+TitleShadow.Parent = MainFrame
+
+-- Título Principal
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 500, 0, 80)
+Title.AnchorPoint = Vector2.new(0.5, 0.5)
+Title.Position = UDim2.new(0.5, 0, 0.4, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "PRIVATE HUB X"
+Title.Font = Enum.Font.Arcade
+Title.TextSize = 65
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Parent = MainFrame
+
+-- Texto: LOADING 0%
+local DynamicText = Instance.new("TextLabel")
+DynamicText.Size = UDim2.new(0, 300, 0, 30)
+DynamicText.AnchorPoint = Vector2.new(0.5, 0.5)
+DynamicText.Position = UDim2.new(0.5, 0, 0.49, 0)
+DynamicText.BackgroundTransparency = 1
+DynamicText.Text = "LOADING 0%"
+DynamicText.Font = Enum.Font.Arcade
+DynamicText.TextSize = 22
+DynamicText.TextColor3 = Color3.fromRGB(255, 255, 255)
+DynamicText.Parent = MainFrame
+
+-- Fundo da Barra
+local BarBackground = Instance.new("Frame")
+BarBackground.Size = UDim2.new(0, 480, 0, 14)
+BarBackground.AnchorPoint = Vector2.new(0.5, 0.5)
+BarBackground.Position = UDim2.new(0.5, 0, 0.56, 0)
+BarBackground.BackgroundColor3 = Color3.fromRGB(20, 0, 0)
+BarBackground.BorderSizePixel = 0
+BarBackground.Parent = MainFrame
+
+local UICornerBg = Instance.new("UICorner")
+UICornerBg.CornerRadius = UDim.new(1, 0)
+UICornerBg.Parent = BarBackground
+
+-- Preenchimento da Barra (Vermelha)
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBackground
+
+local UICornerFill = Instance.new("UICorner")
+UICornerFill.CornerRadius = UDim.new(1, 0)
+UICornerFill.Parent = BarFill
+
+local BarGradient = Instance.new("UIGradient")
+BarGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 40, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 0, 0))
+})
+BarGradient.Parent = BarFill
+
+-- ==========================================
+-- ANIMAÇÃO SINCRONIZADA E CORRIGIDA
+-- ==========================================
+local loadingTime = 6.5 -- Tempo da animação (6.5 segundos)
+local carregamentoConcluido = false -- Nossa "trava" de segurança
+
+-- Configura a animação da barra
+local tweenInfo = TweenInfo.new(loadingTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local barTween = TweenService:Create(BarFill, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)})
+
+barTween:Play()
+
+local startTime = tick()
+local connection
+
+-- Loop do contador de porcentagem
+connection = RunService.RenderStepped:Connect(function()
+    if carregamentoConcluido then
+        connection:Disconnect() -- Trava de segurança ativada, desliga o contador!
+        return
+    end
+
+    local elapsed = tick() - startTime
+    local percentage = math.clamp(math.floor((elapsed / loadingTime) * 100), 0, 100)
+    
+    DynamicText.Text = "LOADING " .. percentage .. "%"
+end)
+
+-- Espera a barra de fato terminar a animação
+barTween.Completed:Wait()
+
+-- Ativa a trava de segurança para o contador não atrapalhar
+carregamentoConcluido = true
+if connection then connection:Disconnect() end
+
+-- Muda o texto e não altera mais
+DynamicText.Text = "WELCOME!"
+
+-- Espera 1.5 segundos exibindo o WELCOME (igual ao vídeo)
+task.wait(1.5)
+
+-- ==========================================
+-- ANIMAÇÃO DE SUMIR (FADE OUT)
+-- ==========================================
+local fadeTime = 0.5
+local fadeInfo = TweenInfo.new(fadeTime, Enum.EasingStyle.Linear)
+
+TweenService:Create(Title, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(TitleShadow, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(DynamicText, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(BarBackground, fadeInfo, {BackgroundTransparency = 1}):Play()
+TweenService:Create(BarFill, fadeInfo, {BackgroundTransparency = 1}):Play()
+TweenService:Create(MainFrame, fadeInfo, {BackgroundTransparency = 1}):Play()
+
+-- Espera sumir totalmente
+task.wait(fadeTime)
+ScreenGui:Destroy()
+
+-- ==================================================
+-- COLOQUE O SEU SCRIPT PRINCIPAL AQUI
+-- ==================================================
+print("Hub Aberto com Sucesso!")
