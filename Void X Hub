@@ -5,6 +5,11 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
+-- Cores no estilo Desync
+local corPrincipal = Color3.fromRGB(220, 220, 220) 
+local corBranco = Color3.fromRGB(255, 255, 255)
+local corPreto = Color3.fromRGB(0, 0, 0)
+
 -- ==========================================
 -- SISTEMA DE PROTEÇÃO (Para Executores Mobile/PC)
 -- ==========================================
@@ -13,6 +18,7 @@ ScreenGui.Name = "PrivateHubLoadingScreen"
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.DisplayOrder = 999999 -- Garante que cubra tudo
 
 local success = pcall(function()
     ScreenGui.Parent = CoreGui
@@ -34,16 +40,16 @@ end
 -- Fundo Principal
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(1, 0, 1, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.BackgroundColor3 = corBranco 
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 
--- Gradiente (Preto na esquerda, Vermelho Escuro na direita)
+-- Gradiente (Preto para o Branco igual ao original, mas com novas cores)
 local BackgroundGradient = Instance.new("UIGradient")
 BackgroundGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(15, 0, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(90, 0, 0))
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
 })
 BackgroundGradient.Parent = MainFrame
 
@@ -53,10 +59,10 @@ TitleShadow.Size = UDim2.new(0, 500, 0, 80)
 TitleShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 TitleShadow.Position = UDim2.new(0.5, 4, 0.4, 4)
 TitleShadow.BackgroundTransparency = 1
-TitleShadow.Text = "PRIVATE HUB X"
+TitleShadow.Text = "Void X Hub"
 TitleShadow.Font = Enum.Font.Arcade
 TitleShadow.TextSize = 65
-TitleShadow.TextColor3 = Color3.fromRGB(0, 0, 0)
+TitleShadow.TextColor3 = corPreto
 TitleShadow.Parent = MainFrame
 
 -- Título Principal
@@ -65,10 +71,10 @@ Title.Size = UDim2.new(0, 500, 0, 80)
 Title.AnchorPoint = Vector2.new(0.5, 0.5)
 Title.Position = UDim2.new(0.5, 0, 0.4, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "PRIVATE HUB X"
+Title.Text = "Void X Hub"
 Title.Font = Enum.Font.Arcade
 Title.TextSize = 65
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 = corBranco
 Title.Parent = MainFrame
 
 -- Texto: LOADING 0%
@@ -80,15 +86,15 @@ DynamicText.BackgroundTransparency = 1
 DynamicText.Text = "LOADING 0%"
 DynamicText.Font = Enum.Font.Arcade
 DynamicText.TextSize = 22
-DynamicText.TextColor3 = Color3.fromRGB(255, 255, 255)
+DynamicText.TextColor3 = corBranco
 DynamicText.Parent = MainFrame
 
--- Fundo da Barra
+-- Fundo da Barra (Cor Preta Desync)
 local BarBackground = Instance.new("Frame")
 BarBackground.Size = UDim2.new(0, 480, 0, 14)
 BarBackground.AnchorPoint = Vector2.new(0.5, 0.5)
 BarBackground.Position = UDim2.new(0.5, 0, 0.56, 0)
-BarBackground.BackgroundColor3 = Color3.fromRGB(20, 0, 0)
+BarBackground.BackgroundColor3 = corPreto
 BarBackground.BorderSizePixel = 0
 BarBackground.Parent = MainFrame
 
@@ -96,10 +102,17 @@ local UICornerBg = Instance.new("UICorner")
 UICornerBg.CornerRadius = UDim.new(1, 0)
 UICornerBg.Parent = BarBackground
 
--- Preenchimento da Barra (Vermelha)
+-- Borda da Barra (Estilo Desync)
+local BarStroke = Instance.new("UIStroke")
+BarStroke.Color = corPrincipal
+BarStroke.Thickness = 1
+BarStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+BarStroke.Parent = BarBackground
+
+-- Preenchimento da Barra (Cor Principal Desync)
 local BarFill = Instance.new("Frame")
 BarFill.Size = UDim2.new(0, 0, 1, 0)
-BarFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+BarFill.BackgroundColor3 = corPrincipal
 BarFill.BorderSizePixel = 0
 BarFill.Parent = BarBackground
 
@@ -107,18 +120,11 @@ local UICornerFill = Instance.new("UICorner")
 UICornerFill.CornerRadius = UDim.new(1, 0)
 UICornerFill.Parent = BarFill
 
-local BarGradient = Instance.new("UIGradient")
-BarGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 40, 40)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 0, 0))
-})
-BarGradient.Parent = BarFill
-
 -- ==========================================
--- ANIMAÇÃO SINCRONIZADA E CORRIGIDA
+-- ANIMAÇÃO SINCRONIZADA
 -- ==========================================
-local loadingTime = 6.5 -- Tempo da animação (6.5 segundos)
-local carregamentoConcluido = false -- Nossa "trava" de segurança
+local loadingTime = 3 -- Tempo reduzido para 3 segundos
+local carregamentoConcluido = false 
 
 -- Configura a animação da barra
 local tweenInfo = TweenInfo.new(loadingTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
@@ -132,7 +138,7 @@ local connection
 -- Loop do contador de porcentagem
 connection = RunService.RenderStepped:Connect(function()
     if carregamentoConcluido then
-        connection:Disconnect() -- Trava de segurança ativada, desliga o contador!
+        connection:Disconnect()
         return
     end
 
@@ -152,7 +158,7 @@ if connection then connection:Disconnect() end
 -- Muda o texto e não altera mais
 DynamicText.Text = "WELCOME!"
 
--- Espera 1.5 segundos exibindo o WELCOME (igual ao vídeo)
+-- Espera 1.5 segundos exibindo o WELCOME 
 task.wait(1.5)
 
 -- ==========================================
@@ -166,6 +172,7 @@ TweenService:Create(TitleShadow, fadeInfo, {TextTransparency = 1}):Play()
 TweenService:Create(DynamicText, fadeInfo, {TextTransparency = 1}):Play()
 TweenService:Create(BarBackground, fadeInfo, {BackgroundTransparency = 1}):Play()
 TweenService:Create(BarFill, fadeInfo, {BackgroundTransparency = 1}):Play()
+TweenService:Create(BarStroke, fadeInfo, {Transparency = 1}):Play()
 TweenService:Create(MainFrame, fadeInfo, {BackgroundTransparency = 1}):Play()
 
 -- Espera sumir totalmente
@@ -175,4 +182,4 @@ ScreenGui:Destroy()
 -- ==================================================
 -- COLOQUE O SEU SCRIPT PRINCIPAL AQUI
 -- ==================================================
-print("Hub Aberto com Sucesso!")
+print("Void X Hub Aberto com Sucesso!")
