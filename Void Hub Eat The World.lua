@@ -126,7 +126,7 @@ local Window = VexUI:CreateWindow({
     Position = UDim2.new(0.5, 7, 0.5, -47),
     ScrollableSidebar = true, -- Adicionando scroll nas abas para corrigir bugs de visualização
     User = {
-        Enabled = true,
+        Enabled = false,
         Anonymous = false,
     },
 })
@@ -145,7 +145,7 @@ Window:EditOpenButton({
     Icon = "box",
     Transparency = 0.2,
     StrokeThickness = 2,
-    Size = UDim2.new(0, 140, 0, 50),
+    Size = UDim2.new(0, 150, 0, 50),
     Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 120, 120)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
@@ -160,8 +160,8 @@ task.spawn(function()
     pcall(function()
         VexUI:Notification({
             Title = "Recommendation",
-            Desc = "It is highly recommended to use this script in a Private Server!",
-            Duration = 6
+            Desc = "Recommended Private Server!",
+            Duration = 10
         })
     end)
 end)
